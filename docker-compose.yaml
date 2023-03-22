@@ -1,0 +1,62 @@
+version: '3'
+services:
+  nginx:
+    container_name: divisora_nginx
+    image: "divisora/nginx:latest"
+    networks:
+      - divisora_front
+    ports:
+      - "80:80"
+      - "443:433"
+    restart: always
+#    read_only: true
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "20"
+  core-manager:
+    container_name: divisora_core-manager
+    image: "divisora/core-manager:latest"
+    networks:
+      - divisora_front
+    restart: always
+#    read_only: true
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "20"
+  freeipa:
+    container_name: divisora_freeipa
+    image: "divisora/freeipa:latest"
+    hostname: "ipa.domain.internal"
+    environment:
+      - PASSWORD=Secret123
+    ports:
+      - "53:53/udp"
+      - "53:53/tcp"
+      - "80:80"
+      - "88:88/udp"
+      - "88:88/tcp"
+      - "389:389"
+      - "443:433"
+      - "464:464/udp"
+      - "464:464/tcp"
+      - "636:636"
+    volumes:
+      - /opt/divisora_freeipa/data:/data:Z
+    sysctls:
+      - net.ipv6.conf.all.disable_ipv6=0
+    dns:
+      - 127.0.0.1
+    restart: always
+    read_only: true    
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "20"
+networks:
+  divisora_front:
+    name: divisora_front
