@@ -44,7 +44,37 @@ client ---> nginx ---> auth
                  <--- containers to build/run
 
 # Expected communication path
-client --(https)--> nginx --(https)--> NoVNC --(VNC+TLS)--> VNC
+client --(https)--> nginx --(https)--> NoVNC --(Unencrypted)--> VNC
+
+# Machines
+3 x Ubuntu 22.04
+
+## portal.domain.external ( Nginx / Core-Manager )
+CPU: 1
+MEM: 512MB
+DISK: 20Gb
+
+## ipa.domain.internal ( Freeipa )
+CPU: 1
+MEM: 512MB
+DISK: 20Gb
+
+## node-1.domain.internal ( Node-Manager / Cubicle-* / noVNC )
+(Highly depends on the numbers of images/cubicles)
+CPU: 1
+MEM: 4096MB
+DISK: 40Gb
+
+# Zones
+        --- | ---
+Trusted --- | --- Untrusted 
+  ---   --- | ---    ---
+        --- | ---
+  ---   --- | ---    ---        
+Portal  --- | --->  Node-1
+        --- | --->  Freeipa
+        --- | x-<-
+        --- | x-<-  Deny traffic backwards
 ```
 
 ## Pages
@@ -98,6 +128,7 @@ podman exec -it <mycontainer> /bin/bash
     - Create support for multiple nodes
     - Add SSL support to NOVNC and between NOVNC and VNC server
     - Make it not run as root
+    - Switch the traffic path to be Core -> Node and not Node -> Core. Maybe support both way?
 - Web / Core
     - Create health 'window' on the login page. Traffic direction must be set first.
     - Token-based login (maybe through FreeIPA?)
